@@ -1,270 +1,145 @@
 ---
 name: ai-output-styles
-description: AI 输出风格库，让 Claude、ChatGPT、Gemini 等 AI 的输出拥有统一、专业、可复用的视觉风格。
+description: AI 输出风格路由器——定位风格、加载模板、按指定风格渲染输出。不创造内容，只改变呈现方式。
 ---
 
 # AI Output Styles (AOS)
 
-## Purpose
-
-AI Output Styles（AOS）是一个输出风格路由器。
-
-AOS 不负责：
-
-* 内容生成
-* 内容分析
-* 内容推理
-* 内容改写
-
-AOS 只负责：
-
-* 定位 Style
-* 加载 Style
-* 加载 Template
-* 按指定风格输出
+AOS 是一个**输出风格路由器**。它不管内容，只管把内容送进正确的风格流水线。
 
 ---
 
-## Trigger Conditions
+## 1. 触发条件与参数解析
 
-仅在以下场景触发：
+调用方式：
 
-### Style Name
-
-例如：
-
-```text
-style:deepthink
+```
+/ai-output-styles [style] [template1] [template2] ...
 ```
 
-```text
-style:mckinsey
+### 参数解析流程
+
+```
+/ai-output-styles
+  → 无参数：扫描 styles/ 展示风格列表，询问用户选哪个
+
+/ai-output-styles [style]
+  → 有 style，无 template：
+    → 读取 styles/[style]/README.md 获取模板清单
+    → 只有1个模板：直接使用，开始渲染
+    → 有多个模板：列出模板清单，询问用户选哪个（或选多个）
+    → 没有模板：提醒用户该风格无可用模板，结束
+
+/ai-output-styles [style] [template]
+  → 有 style + template：直接加载 styles/[style]/templates/[template:需加载文件] 开始渲染
+
+/ai-output-styles [style] [template1] [template2] ...
+  → 有 style + 多个 template：依次加载各模板，同一份内容分别渲染
 ```
 
-```text
-使用 deepthink 风格
-```
+### style 匹配规则
+
+| 用户输入               | 匹配方式                     |
+|--------------------|--------------------------|
+| `deepthink`        | 精确匹配 `styles/deepthink/` |
+| `styles/deepthink` | 路径匹配，取最后一段               |
+| URL                | 远程获取 README              |
+
+匹配不到 style 时，提示可用的风格列表供用户选择。
 
 ---
 
-### README Path
+## 2. 风格注册表与路由
 
-例如：
+### 注册表
 
-```text
-styles/deepthink
+扫描 `styles/` 目录，每个子目录即为一个风格：
+
 ```
-
-```text
-styles/deepthink/README.md
-```
-
----
-
-### README URL
-
-例如：
-
-```text
-https://github.com/xxx/styles/deepthink/README.md
-```
-
----
-
-未满足以上条件时，不主动触发 AOS。
-
----
-
-## Style Resolution
-
-### Priority 1
-
-精确路径
-
-```text
-styles/deepthink/README.md
-```
-
----
-
-### Priority 2
-
-README URL
-
-```text
-https://...
-```
-
----
-
-### Priority 3
-
-Style Name
-
-```text
-deepthink
-```
-
-从本地 styles 目录查找：
-
-```text
-styles/{style}/README.md
-```
-
----
-
-## Style Loading
-
-读取目标 Style 的：
-
-```text
-README.md
-```
-
-获取：
-
-* Style 信息
-* 可用模板
-* 默认模板
-
----
-
-## Template Loading
-
-如果用户指定模板：
-
-例如：
-
-```text
-style:deepthink
-
-template:report
-```
-
-加载：
-
-```text
-templates/report.html
-```
-
----
-
-如果用户未指定模板：
-
-加载 README 中声明的默认模板。
-
----
-
-## Multiple Templates
-
-允许同时指定多个模板。
-
-例如：
-
-```text
-style:deepthink
-
-templates:
-- report
-- summary
-```
-
-执行方式：
-
-```text
-同一份内容
-↓
-report.html
-↓
-输出结果 A
-
-同一份内容
-↓
-summary.html
-↓
-输出结果 B
-```
-
-模板之间互不依赖。
-
-不进行编排。
-
-不共享上下文。
-
-独立运行。
-
----
-
-## Output Constraints
-
-AOS 不创造内容。
-
-AOS 不修改事实。
-
-AOS 不修改观点。
-
-AOS 不修改结论。
-
-AOS 不删减原文。
-
-AOS 不改写原文。
-
-仅改变：
-
-* 布局
-* 结构
-* 视觉表现
-* 输出格式
-
-### 保真原则（Fidelity Rule）
-
-**只换皮，不改肉。**
-
-具体的保真硬约束和组件禁忌由每个 Style 的模板定义，模板是保真规则的权威来源。
-
-渲染时必须遵守目标模板头部注释中声明的「⚠ 保真硬约束」与「⚠ 组件禁忌对照表」。
-
----
-
-## Output Delivery
-
-产物一律落盘到 `styles/<style>/examples/`。
-
-风格化输出本身就是文件。
-
-消息正文只回复路径。
-
----
-
-## Repository Convention
-
-```text
 styles/
-└── deepthink
-    ├── README.md
-    ├── templates
-    ├── examples
-    └── preview
+├── aos/          ← AOS 通用风格
+├── deepthink/    ← DeepThink 深度分析风格
+└── <style>/      ← 未来新增风格
 ```
 
-其中：
+### 路由优先级
 
-README.md
+| 优先级 | 信号   | 解析方式                                     |
+|-----|------|------------------------------------------|
+| 1   | 精确路径 | 直接读取 `styles/<style>/README.md`          |
+| 2   | URL  | 远程获取 README.md                           |
+| 3   | 风格名  | 在 `styles/` 下找 `styles/<name>/README.md` |
 
-负责描述：
+### 加载流程
 
-* 风格
-* 模板
-* 默认模板
+```
+路由到 styles/<style>/README.md
+  → 读取模板清单 + 默认模板
+  → 用户指定模板？加载对应 templates/<name>.html/.md
+  → 用户未指定？加载 README 中声明的默认模板
+  → 模板文件找不到？停止，告知缺哪个文件。不编造样式。
+```
 
-templates/
+需加载文件优先从本地目录找；找不到再用远程 URL（
+`https://raw.githubusercontent.com/nest85/ai-output-styles/main/styles/<style>/`），用到的远程风格下载保存到本地 /styles。
 
-负责定义：
+多模板时，同一份内容分别送入每个模板，独立渲染，互不依赖，不共享上下文。
 
-* HTML
-* Markdown
-* PPT
-* Dashboard
-* Infographic
+---
 
-等输出模板。
+## 3. 全局产物规则
+
+### 落盘位置
+
+产物一律写入 `styles/<style>/examples/`。
+
+### 文件命名
+
+```
+<内容标题>@<模板名>.<ext>
+```
+
+同一内容多模板输出时，各自独立命名，不合并。
+
+### 输出方式
+
+风格化输出本身是文件。消息正文只回复文件路径。
+
+---
+
+## 4. 风格与模板的创建 / 更新
+
+### 新增风格
+
+在 `styles/` 下新建目录，最少需要：
+
+```
+styles/<new-style>/
+├── README.md          ← 必须包含：风格定位、可用模板清单、默认模板声明
+├── templates/         ← 至少一个模板文件
+└── examples/          ← 产物落盘目录（建好即可）
+```
+
+README.md 中**必须**包含的字段（AI 路由依赖）：
+
+- **可用模板清单**：表格列出模板名、适合场景、需加载文件、渲染依赖
+- **默认模板声明**：用户未指定模板时加载哪个
+
+无需修改 `skill/SKILL.md`——路由规则全局通用。
+
+### 新增模板
+
+在 `styles/<style>/templates/` 下新增模板文件。模板头部注释必须包含：
+
+- 组件清单与用法示例
+- 渲染机制说明
+- ⚠ 保真硬约束
+- ⚠ 组件禁忌对照表
+
+然后在 `styles/<style>/README.md` 的模板清单中登记。
+
+### 更新风格 / 模板
+
+修改对应文件即可。注意：
+
+- 同一条规则只在一个地方写完整，其他地方显式引用（"详见 templates/xxx"），不复述出不同版本
