@@ -35,6 +35,7 @@ AI注意：
 | 模板名称    | 适合场景                     | 需加载文件                       | 渲染依赖            |
 |---------|--------------------------|-----------------------------|-----------------|
 | html    | 可视化 / 可打印 PDF / 浏览器分享    | templates/as.html           | 浏览器             |
+| html2   | 可视化 / 可打印 PDF / 浏览器分享    | templates/as-v2.html        | 浏览器             |
 | aoshtml | 可视化 / 可打印 PDF / 浏览器分享    | templates/aos-template.html | 浏览器             |
 | md      | 文档站 / 邮件 / 纯文本归档 / PR 描述 | templates/as.md             | 任意 Markdown 渲染器 |
 | ppt     | 网页 PPT / 演示 / 翻页幻灯片 / 可打印 PDF | templates/ppt.html          | 浏览器             |
