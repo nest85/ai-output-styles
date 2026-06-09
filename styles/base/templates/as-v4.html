@@ -1,56 +1,29 @@
 <!DOCTYPE html>
 <html lang="zh">
+<!-- @as-protocol
+  模板名称: AI Styles Complex Test Template
+  任务目标: 使用已声明组件，在 data-as-slot 槽位内渲染用户内容；
+  元素标记:
+    data-as-slot="name" = 槽位，AI 可填充，位置固定；对应 @as-slot name 的注释。
+    data-as-component="name" = 组件，AI 可复用；对应 @as-component name 的注释。
+    data-as-lock="true" = 锁定区，AI 不可修改，原样渲染；
+  渲染规则:
+    0. 渲染前先检查每个元素的属性约束再决定能不能动；
+    1. 仅允许替换各 data-as-slot 元素的内部内容，data-as-slot 元素本身必须原样保留；
+    2. 仅在 data-as-slot 内使用已声明 data-as-component 组件；
+    3. 无法确定 data-as-component 组件时，使用默认组件；
+    4. 允许修改 data-as-component 组件正常使用所需内容和属性，如 img.src、img.alt、figcaption、a.href、文本内容；
+    5. 禁止自创组件、class、style、data-* 属性；
+    6. 没有 data-as-* 标记的元素必须原样渲染；
+    7. data-as-lock="true" 标记的元素及内容必须原样渲染；
+    8. 用户原文必须 1:1 保留，不改写、不增删、不润色、不重排；
+  输出要求:
+    1. 删除所有 @as-* 控制注释；
+    2. 保留所有元素的 data-as-* 属性；
+-->
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<!-- ============================================================
-本文件是 AI Styles HTML 模板，渲染前必须读取。
-任务：使用本模板渲染用户内容，输出完整 HTML。
-
-一、AI Styles 协议
-
-1. 元素类型与注释绑定
-  data-as-slot="name" 内容槽（Slot），位置固定。
-  data-as-component="name" 内容组件（Component）。
-  name 为元素唯一标识，元素与同名 @as-* 注释绑定：
-    data-as-slot="title"  ↔ @as-slot title
-    data-as-component="p" ↔ @as-component p
-
-  协议字段：
-    Slot：
-      描述 = 内容归属
-      填充 = 文本（先清空示例文本，无合适内容则留空）｜组件（清空示例后用组件重新组装）
-
-    Component：
-      描述 = 组件用途
-      布局 = 块｜行内
-      适用 = 使用场景
-      禁止 = 禁用场景
-
-2. 渲染规则
-  渲染前读取并解析全部 @as-slot 与 @as-component 注释。
-  仅识别上述协议字段，其它内容忽略。
-  组件根据“适用/禁止”按内容语义选择，不靠视觉样式或排版判断，无法确定时使用默认组件；
-  仅允许使用已声明组件，禁止自创组件。
-  除组件正常使用所需内容和属性外，不得修改元素结构、标签、class、style、data-* 属性。
-  未标记的元素原样照搬，绝不改、不移、不删。
-
-二、保真约束
-用户原文必须 1:1 保留：不改写、不增删、不重排、不做 Unicode 归一化。
-
-三、输出要求
-输出完整 HTML。
-保留：data-as-slot 属性、data-as-component 属性。
-删除：本头部注释、所有 @as-slot 注释、所有 @as-component 注释。
-============================================================ -->
-
-<!-- @as-slot title
-  描述: 浏览器标签页标题
-  填充: 文本
--->
-<title data-as-slot="title">示例文档标题</title>
-
 <style>
   /* ============ 设计 token ============ */
   :root{
@@ -254,6 +227,7 @@
     font-family:var(--mono);font-size:var(--text-xs);font-weight:var(--font-bold);
     letter-spacing:var(--tracking-wider);text-transform:uppercase;color:var(--ink-soft)}
 </style>
+<title data-as-lock="true">示例文档标题</title>
 </head>
 <body>
 
@@ -262,6 +236,8 @@
 <!-- @as-slot eyebrow
   描述: 文章上方的小标签
   填充: 文本
+  适用：主标题上的小标签
+  禁止：作为标题
 -->
 <p class="eyebrow" data-as-slot="eyebrow">示例内容</p>
 
@@ -269,22 +245,13 @@
   描述: 文章大标题
   填充: 文本
 -->
-<h1 data-as-slot="heading">示例文档标题</h1>
+<h1 data-as-lock="true">示例文档标题</h1>
 
 <!-- @as-slot body
-  描述: 正文主体区。本槽的第一个 <p> 会自动获得 lead 排版。
+  描述: 正文主体区。
   填充: 组件
 -->
 <div data-as-slot="body">
-
-    <!-- ============================================================
-       ↓↓ 组件清单 ↓↓
-       每个组件 = 一段 @as-component 说明 + 一个真实示例。
-       data-as-component 标记的元素为组件定义本体；
-       其外围示例结构仅用于展示效果，不属于组件定义。
-       本区域同时作为 body 槽示例内容；
-       渲染时按 body 槽规则整体替换。
-       ============================================================ -->
 
   <!-- @as-component p
     描述: 段落（默认组件）
@@ -527,7 +494,8 @@
 <footer>AI Styles · Base</footer>
 
 <!-- 浮动目录：从正文 h2/h3 自动生成（原生 JS，无依赖） -->
-<script>
+<script data-as-lock="true">
+<!-- 浮动目录：从正文 h2/h3 自动生成（原生 JS，无依赖） -->
 (function () {
   function build() {
     try {
@@ -609,4 +577,14 @@
 })();
 </script>
 </body>
+<!-- @as-check
+任务目标: 输出前自检
+检查项目:
+  1. 是否原样渲染没有 data-as-* 标记的元素与内容；
+  2. 是否原样渲染 data-as-lock="true" 标记的元素及内容；
+  3. 是否仅删除所有 @as-* 控制注释；
+  4. 是否保留所有 data-as-* 属性；
+  5. 是否没有自创组件、class、style、data-as-* 属性；
+  6. 是否有1:1保留用户原文，没有改写、增删、润色、重排；
+-->
 </html>
