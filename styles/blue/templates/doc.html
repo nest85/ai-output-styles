@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="">
+<title>企业科技深蓝风格通用文档模板 v3</title>
+<!-- @as-protocol-html v1.1
+名称: 企业科技深蓝风格通用文档模板 v3
+
+== 定义 ==
+- data-as-element="name" 标识一个 AS 元素；@as-element name 注释声明同名元素的权限与选择边界。
+- as-* = 所有已声明 AS 元素；html-* = 原生 HTML 元素；* = as-* + html-*。
+
+== 总原则（白名单）==
+未声明允许 = 不允许。AI 仅在 AS 元素「允许」开放的范围内组织内容；
+范围之外的元素、属性、内容、注释一律原样保留，不得改动其位置、属性、内容或标签。
+
+== 注释声明（三段，顺序固定）==
+允许 → 适用 → 禁止。允许=能力边界；适用=什么内容应使用（正向）；禁止=什么内容不得使用（反向）。
+
+== 允许字段 ==
+- positions：可放置的父元素；合法父元素内可移动、复制、重排数量。
+- elements：内部允许放置的子元素。
+- attributes：可改的属性及取值；【必须显式列举，无全集】。
+- text：纯文本是否可改；【只有「写/不写」两态，非集合】。
+写法：不写=空集（关闭）；裸写字段名=[*]（全集，仅 positions/elements 适用）；
+      []=空集；[a,b]=限定集；[a:[x,y],b]=二级限定（最多两级）。
+attributes 取值写法：[src, alt] 或 [type:[note, warning]]。
+
+== 放置门控 ==
+- 父为 AS 元素：子的 positions 含父 AND 父的 elements 含子，二者同时成立才可放置。
+- 父为原生 HTML：仅需子的 positions 含该父标签名。
+- positions/elements 名称解析：先匹配 AS 元素，无则匹配原生标签。
+
+== 元素选择 ==
+多个 AS 元素同时满足「适用 ∧ ¬禁止」时：① 更具体者优先（可接收内容更少、语义更专一）；
+② 仍并列取先声明者。不以「禁止更少」为依据。
+
+== 模板级遮蔽 ==
+若某 AS 元素的 data-as-element 取值与某原生标签名逐字相同，AI 不得再生成该原生标签（含兜底），
+该名称在 positions/elements 中只解析为这个 AS 元素。
+
+== 渲染规则 ==
+1. 有 data-as-element 的元素仅按其「允许」字段修改。
+2. 禁止新增/删除/修改 CSS。
+3. 禁止新增/删除/修改 JS。
+4. 仅 attributes 显式列出的属性可改；未列出的不得新增/删除/修改。
+5. class、style、data-*、data-as-element、on* 为受保护属性，任何情况不得改，且不能经 attributes 解除（变体用受控属性实现，如 type:[note,warning]，不改 class）。
+6. 任何属性不得用脚本执行型 URL（javascript:、vbscript: 等）；URL 型属性（如 a 的 href）仅允许 http/https/mailto。
+7. 禁止生成 iframe、embed、object、link、meta、base 标签。
+8. 不得使用未声明的 AS 元素。
+9. 无合适 AS 元素时，用原生 HTML 元素兜底。
+10. 用户原文 1:1 保留，不改写、不增删、不润色、不重排。
+
+== 渲染流程 ==
+1. 收集模板内所有 AS 元素，读其 允许/适用/禁止。
+2. 分析用户内容结构。
+3. 每个内容单元，筛出满足「放置门控 ∧ 适用 ∧ ¬禁止」的候选。
+4. 有候选：按「元素选择」取最高优先者，依允许字段生成。
+5. 无候选：用原生 HTML 元素兜底。
+
+== 输出 ==
+删除所有 @as-* 控制注释；其余按上文原样保留。
+-->
+
+<style>
+  :root {
+    --navy-900: #080d2b;
+    --navy-800: #101a4a;
+    --blue-600: #0d3fb8;
+    --blue-500: #0d3fb8;
+    --cyan-400: #3aa9c2;
+    --cyan-300: #7cc8d6;
+    --white: #ffffff;
+    --paper: #f4f7fb;
+    --card: #ffffff;
+    --ink: #111827;
+    --ink-soft: #475467;
+    --muted: #7a8699;
+    --rule: #dbe5f2;
+    --success: #14b8a6;
+    --warning: #c2792b;
+    --danger: #c92a2a;
+    --shadow: 0 22px 70px rgba(10, 22, 70, .13);
+    --sans: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    --mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--paper);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.78;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .site-shell {
+    min-height: 100vh;
+    padding-top: 58px;
+    background: var(--paper);
+  }
+
+  .topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    height: 58px;
+    background: #fff;
+    border-bottom: 1px solid var(--rule);
+    box-shadow: 0 2px 14px rgba(10, 22, 70, .05);
+  }
+
+  .topbar-inner {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 28px;
+    color: var(--ink);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .brand-logo img {
+    display: block;
+    height: 44px;
+  }
+
+  .doc-meta-mini {
+    display: flex;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+
+  .topbar-btn {
+    appearance: none;
+    padding: 6px 14px;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--ink-soft);
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s, transform .05s;
+  }
+
+  .topbar-btn:hover {
+    color: var(--blue-600);
+    border-color: var(--blue-500);
+    background: #f4f8ff;
+  }
+
+  .topbar-btn:active {
+    transform: translateY(1px);
+  }
+
+  .hero {
+    position: relative;
+    color: var(--white);
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 8% 14%, rgba(58, 169, 194, .16), transparent 28%),
+      radial-gradient(circle at 86% 19%, rgba(13, 63, 184, .26), transparent 32%),
+      linear-gradient(180deg, var(--navy-900), var(--navy-900));
+  }
+
+  .hero-inner {
+    position: relative;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 54px 28px 62px;
+  }
+
+  .hero::after {
+    content: "";
+    position: absolute;
+    right: -110px;
+    top: 30px;
+    width: 380px;
+    height: 380px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle, rgba(58, 169, 194, .15), transparent 58%),
+      linear-gradient(135deg, rgba(13, 63, 184, .25), transparent);
+    pointer-events: none;
+  }
+
+  .eyebrow {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 7px 12px;
+    border: 1px solid rgba(124, 200, 214, .26);
+    border-radius: 999px;
+    color: var(--cyan-300);
+    font-size: 13px;
+    background: rgba(8, 13, 43, .45);
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--cyan-400);
+    box-shadow: 0 0 18px var(--cyan-400);
+  }
+
+  .hero h1 {
+    position: relative;
+    z-index: 1;
+    max-width: 850px;
+    margin: 0;
+    color: var(--white);
+    font-size: 42px;
+    line-height: 1.18;
+    letter-spacing: -.02em;
+    font-weight: 800;
+  }
+
+  .hero-subtitle {
+    position: relative;
+    z-index: 1;
+    max-width: 740px;
+    margin: 18px 0 0;
+    color: rgba(255, 255, 255, .72);
+    font-size: 18px;
+  }
+
+  .hero-info {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+  }
+
+  .info-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    color: rgba(255, 255, 255, .84);
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .12);
+    font-size: 13px;
+  }
+
+  .doc-layout {
+    max-width: 1320px;
+    margin: 24px auto 0;
+    padding: 0 28px 80px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 26px;
+    align-items: start;
+  }
+
+  [data-as-element="as-document"] {
+    min-width: 0;
+    padding: 34px 38px 46px;
+    background: rgba(255, 255, 255, .96);
+    border: 1px solid rgba(219, 229, 242, .9);
+    border-radius: 22px;
+    box-shadow: var(--shadow);
+  }
+
+  .side-panel {
+    position: sticky;
+    top: 82px;
+    padding: 22px;
+    border-radius: 20px;
+    background: linear-gradient(180deg, #ffffff, #f8fbff);
+    border: 1px solid var(--rule);
+    box-shadow: 0 14px 45px rgba(10, 22, 70, .08);
+    max-height: calc(100vh - 100px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .side-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--navy-900);
+    line-height: 1.2;
+  }
+
+  .side-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 0 12px;
+  }
+
+  .toc-top-btn {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    padding: 0;
+    cursor: pointer;
+    transition: color .15s;
+  }
+
+  .toc-top-btn:hover {
+    color: var(--blue-600);
+  }
+
+  #toc {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 4px;
+    margin-right: -6px;
+  }
+
+  .toc-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .toc-list li {
+    margin: 0;
+  }
+
+  .toc-list a {
+    display: block;
+    padding: 7px 10px;
+    border-radius: 8px;
+    color: var(--ink-soft);
+    font-size: 13px;
+    line-height: 1.5;
+    border-bottom: 0;
+    border-left: 2px solid transparent;
+    transition: background .15s, color .15s, border-color .15s;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .toc-list a:hover {
+    background: rgba(13, 63, 184, .06);
+    color: var(--navy-900);
+  }
+
+  .toc-list a.is-active {
+    color: var(--blue-600);
+    background: rgba(13, 63, 184, .08);
+    border-left-color: var(--blue-500);
+    font-weight: 700;
+  }
+
+  .toc-list .toc-h1 > a {
+    font-weight: 800;
+    color: var(--navy-900);
+    font-size: 13.5px;
+  }
+
+  .toc-list .toc-h2 > a {
+    padding-left: 22px;
+  }
+
+  .toc-list .toc-h3 > a {
+    padding-left: 34px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  .toc-empty {
+    color: var(--muted);
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--navy-900);
+    line-height: 1.34;
+  }
+
+  h1 {
+    margin: 0 0 22px;
+    font-size: 34px;
+  }
+
+  h2 {
+    margin: 42px 0 16px;
+    padding-left: 12px;
+    border-left: 4px solid var(--blue-500);
+    font-size: 24px;
+  }
+
+  h3 {
+    margin: 30px 0 12px;
+    font-size: 19px;
+  }
+
+  h4 {
+    margin: 22px 0 10px;
+    font-size: 16px;
+  }
+
+  p {
+    margin: 0 0 1.05em;
+  }
+
+  a {
+    color: var(--blue-600);
+    text-decoration: none;
+    border-bottom: 1px dotted currentColor;
+  }
+
+  strong {
+    color: var(--navy-900);
+    font-weight: 800;
+  }
+
+  em {
+    color: var(--blue-600);
+    font-style: normal;
+  }
+
+  ul,
+  ol {
+    margin: 0 0 1.15em;
+    padding-left: 1.35em;
+  }
+
+  li {
+    margin: .36em 0;
+  }
+
+  hr {
+    border: 0;
+    height: 1px;
+    margin: 34px 0;
+    background: var(--rule);
+  }
+
+  blockquote {
+    margin: 24px 0;
+    padding: 16px 20px;
+    border-left: 4px solid var(--cyan-400);
+    border-radius: 12px;
+    background: linear-gradient(90deg, rgba(58, 169, 194, .11), rgba(13, 63, 184, .04));
+    color: var(--ink-soft);
+    font-size: 17px;
+  }
+
+  table {
+    width: 100%;
+    margin: 24px 0;
+    border-collapse: collapse;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    font-size: 14px;
+  }
+
+  th,
+  td {
+    padding: 11px 13px;
+    border-bottom: 1px solid var(--rule);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    background: #eef5ff;
+    color: var(--navy-900);
+    font-weight: 800;
+  }
+
+  tr:last-child td {
+    border-bottom: 0;
+  }
+
+  code {
+    padding: .12em .38em;
+    border-radius: 5px;
+    background: #eef2f8;
+    color: #0f3a75;
+    font-family: var(--mono);
+    font-size: .92em;
+  }
+
+  pre {
+    margin: 24px 0;
+    padding: 18px 20px;
+    overflow: auto;
+    border-radius: 14px;
+    background: #071026;
+    color: #dbeafe;
+    font-family: var(--mono);
+    line-height: 1.62;
+  }
+
+  pre code {
+    padding: 0;
+    background: none;
+    color: inherit;
+  }
+
+  kbd {
+    display: inline-block;
+    padding: 1px 7px;
+    border: 1px solid var(--rule);
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    background: #fff;
+    font-family: var(--mono);
+    font-size: .88em;
+  }
+
+  mark {
+    padding: 0 .18em;
+    border-radius: 3px;
+    background: rgba(58, 169, 194, .25);
+  }
+
+  details {
+    margin: 20px 0;
+    padding: 15px 18px;
+    border-radius: 14px;
+    border: 1px solid var(--rule);
+    background: #f8fbff;
+  }
+
+  summary {
+    cursor: pointer;
+    color: var(--navy-900);
+    font-weight: 800;
+  }
+
+  .lead {
+    margin: 0 0 24px;
+    padding: 18px 20px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(13, 63, 184, .09), rgba(58, 169, 194, .10));
+    color: var(--ink-soft);
+    font-size: 18px;
+  }
+
+  .section {
+    margin: 36px 0;
+  }
+
+  .summary-card {
+    margin: 26px 0;
+    padding: 22px 24px;
+    border-radius: 18px;
+    background:
+      linear-gradient(135deg, rgba(8, 13, 43, .96), rgba(16, 26, 74, .94)),
+      radial-gradient(circle at 90% 20%, rgba(58, 169, 194, .2), transparent 40%);
+    color: rgba(255, 255, 255, .9);
+    box-shadow: 0 20px 60px rgba(8, 13, 43, .18);
+  }
+
+  .summary-card h2,
+  .summary-card h3 {
+    margin-top: 0;
+    color: #fff;
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .summary-card .summary-title {
+    margin: 0 0 10px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: .02em;
+  }
+
+  .summary-card p,
+  .summary-card li {
+    color: rgba(255, 255, 255, .78);
+  }
+
+  .summary-card strong {
+    color: #fff;
+  }
+
+  .callout {
+    margin: 20px 0;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--blue-500);
+    background: #fafbfd;
+  }
+
+  .callout[type="warning"] {
+    border-left-color: var(--warning);
+    background: #fafbfd;
+  }
+
+  .callout[type="risk"] {
+    border-left-color: var(--danger);
+    background: #fafbfd;
+  }
+
+  .callout::before {
+    display: block;
+    margin-bottom: 4px;
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    color: var(--muted);
+  }
+
+  .callout[type="note"]::before {
+    content: "提示";
+  }
+
+  .callout[type="warning"]::before {
+    content: "注意";
+    color: var(--warning);
+  }
+
+  .callout[type="risk"]::before {
+    content: "风险";
+    color: var(--danger);
+  }
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin: 24px 0;
+  }
+
+  .metric {
+    padding: 18px;
+    border-radius: 16px;
+    background: #fff;
+    border: 1px solid var(--rule);
+    box-shadow: 0 10px 30px rgba(10, 22, 70, .06);
+  }
+
+  .metric-value {
+    margin: 0;
+    color: var(--blue-600);
+    font-size: 28px;
+    line-height: 1;
+    font-weight: 850;
+  }
+
+  .metric-label {
+    margin: 9px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .action-list {
+    margin: 24px 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .action-list li {
+    display: flex;
+    gap: 12px;
+    margin: 10px 0;
+    padding: 13px 15px;
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    background: #fff;
+  }
+
+  .action-list li::before {
+    content: "✓";
+    flex: 0 0 22px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: rgba(58, 169, 194, .18);
+    color: var(--success);
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .figure {
+    margin: 30px 0;
+  }
+
+  .figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 16px;
+    border: 1px solid var(--rule);
+    box-shadow: 0 16px 45px rgba(10, 22, 70, .10);
+  }
+
+  .figure figcaption {
+    margin-top: 10px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .footer {
+    background: var(--paper);
+  }
+
+  .footer-inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 22px 28px 36px;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    border-top: 1px solid var(--rule);
+    color: var(--ink-soft);
+    font-size: 12px;
+  }
+
+  @media (max-width: 920px) {
+    .doc-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .side-panel {
+      position: static;
+      max-height: none;
+    }
+
+    .metric-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .topbar-inner {
+      padding: 0 18px;
+    }
+
+    .doc-meta-mini {
+      display: none;
+    }
+
+    .hero-inner {
+      padding: 40px 18px 56px;
+    }
+
+    .hero h1 {
+      font-size: 31px;
+    }
+
+    .doc-layout {
+      padding: 0 18px 54px;
+    }
+
+    [data-as-element="as-document"] {
+      padding: 26px 20px 34px;
+      border-radius: 18px;
+    }
+
+    .footer-inner {
+      padding: 18px 18px 28px;
+      flex-direction: column;
+      gap: 8px;
+    }
+  }
+
+  /* 打印 / 导出 PDF 样式 —— 浏览器「另存为 PDF」时生效 */
+  @media print {
+    @page {
+      size: A4;
+      margin: 14mm 12mm;
+    }
+
+    html, body {
+      background: #fff !important;
+    }
+
+    .topbar,
+    .side-panel,
+    .topbar-btn,
+    #toc-top-btn {
+      display: none !important;
+    }
+
+    .site-shell { padding-top: 0; }
+
+    .hero {
+      background: none !important;
+      color: #000 !important;
+    }
+    .hero::after { display: none !important; }
+    .hero-inner  { padding: 0 0 18px; }
+    .hero h1     { color: #000 !important; }
+    .info-pill {
+      color: #000 !important;
+      background: #f0f3fa !important;
+      border-color: #d0d7e6 !important;
+    }
+
+    .doc-layout {
+      display: block !important;
+      padding: 0;
+      margin: 0;
+      max-width: 100%;
+    }
+    [data-as-element="as-document"] {
+      padding: 0 !important;
+      border: 0 !important;
+      box-shadow: none !important;
+      background: #fff !important;
+    }
+
+    /* 避免关键块被分页切断 */
+    table, tr, .callout, .summary-card, figure, pre, blockquote {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    h2, h3, h4 {
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    .summary-card {
+      background: #f4f7fb !important;
+      color: #000 !important;
+      box-shadow: none !important;
+    }
+    .summary-card p,
+    .summary-card li,
+    .summary-card .summary-title {
+      color: #000 !important;
+    }
+  }
+</style>
+</head>
+
+<body>
+<div class="site-shell">
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-logo" aria-label="Logo">
+          <img src="https://dummyimage.com/200x60/0b102e/ffffff&text=Logo" alt="Logo">
+        </div>
+      </div>
+      <div class="doc-meta-mini">
+        <button type="button" id="print-btn" class="topbar-btn">打印</button>
+        <button type="button" id="export-pdf-btn" class="topbar-btn">PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+
+    <!-- @as-element as-hero-title
+      允许:
+        text
+      适用: 文档主标题。
+      禁止: 段落、列表、表格、正文内容。
+    -->
+    <h1 data-as-element="as-hero-title">企业科技深蓝风格内部通用文档标题</h1>
+
+    <!-- @as-element as-hero-subtitle
+      允许:
+        text
+      适用: 文档副标题、说明或一句话摘要。
+      禁止: 长篇正文、列表、表格。
+    -->
+    <p class="hero-subtitle" data-as-element="as-hero-subtitle">用于方案、汇报、纪要、研究分析等内部通用文档场景。</p>
+
+    <div class="hero-info">
+      <!-- @as-element as-doc-type
+        允许:
+          positions: [*]
+          text
+        适用: 文档类型，例如技术方案、项目汇报、会议纪要、文档日期、版本日期、部门、作者、负责人。
+        禁止: 正文段落。
+      -->
+      <span class="info-pill" data-as-element="as-doc-type">文档类型：通用文档</span>
+    </div>
+    </div>
+  </section>
+
+  <main class="doc-layout">
+    <!-- @as-element as-document
+      允许:
+        elements: [as-*, html-*]
+      适用: 文档正文根区域，可承载已声明 AS 元素和模板支持的安全原生 HTML。
+      禁止: 修改 document 元素本身的标签和属性；把用户内容放到 document 外部。
+    -->
+    <div data-as-element="as-document">
+
+      <!-- @as-element as-lead
+        允许:
+          positions: [as-document, as-section]
+          text
+        适用: 文档导语、背景引入、摘要式的一段话。
+        禁止: 普通正文段落；列表；表格；代码块。
+      -->
+      <p class="lead" data-as-element="as-lead">这里是一段文档导语，用于说明背景、目的和整体范围。</p>
+
+      <!-- @as-element as-summary
+        允许:
+          positions: [as-document, as-section]
+          elements: [as-*, html-*]
+        适用: 核心结论、执行摘要、关键观点汇总。
+        禁止: 标题；普通正文；细节展开；代码块。
+      -->
+      <section class="summary-card" data-as-element="as-summary">
+        <p class="summary-title">核心摘要</p>
+        <p>这里放置文档的核心结论和最重要的判断。</p>
+      </section>
+
+      <!-- @as-element as-section
+        允许:
+          positions: [as-document]
+          elements: [as-*, html-*]
+        适用: 文档主要章节；包含标题、段落、列表、表格、组件等。
+        禁止: 只承载一句强调语；在 section 内再嵌套 section。
+      -->
+      <section class="section" data-as-element="as-section">
+        <h2>一、章节标题</h2>
+        <p>这里是章节正文内容，可使用原生 HTML 标签，如段落、列表、表格、引用、代码块等。</p>
+      </section>
+
+      <!-- @as-element as-callout
+        允许:
+          positions: [as-document, as-section]
+          elements: [as-*, html-*]
+          attributes: [type:[note, warning, risk]]
+        适用: 提示、注意事项、风险说明。
+        禁止: 普通正文；真实引用；章节标题；使用 note/warning/risk 之外的 type。
+      -->
+      <div class="callout" type="note" data-as-element="as-callout">
+        <p>这里是一段提示内容。</p>
+      </div>
+
+      <!-- @as-element as-metric-grid
+        允许:
+          positions: [as-document, as-section]
+          elements: [as-metric]
+        适用: 多个关键指标、数据摘要、目标拆解。
+        禁止: 普通列表；无数值或无指标含义的内容。
+      -->
+      <div class="metric-grid" data-as-element="as-metric-grid">
+
+        <!-- @as-element as-metric
+          允许:
+            positions: [as-metric-grid]
+            elements: [html-*]
+          适用: 单个关键指标或数据点。
+          禁止: 大段正文；复杂表格。
+        -->
+        <div class="metric" data-as-element="as-metric">
+          <p class="metric-value">85%</p>
+          <p class="metric-label">示例指标</p>
+        </div>
+
+      </div>
+
+      <!-- @as-element as-action-list
+        允许:
+          positions: [as-document, as-section]
+          elements: [html-*]
+        适用: 行动项、待办事项、后续计划。
+        禁止: 普通正文；无执行含义的描述。
+      -->
+      <ul class="action-list" data-as-element="as-action-list">
+        <li>这里是一条行动项。</li>
+      </ul>
+
+      <!-- @as-element as-figure
+        允许:
+          positions: [as-document, as-section]
+          elements: [as-figure-image, as-figure-caption]
+        适用: 原文中的图片、截图、示意图及图注。
+        禁止: 无信息价值的装饰图。
+      -->
+      <figure class="figure" data-as-element="as-figure">
+
+        <!-- @as-element as-figure-image
+          允许:
+            attributes: [src, alt]
+          适用: 图片地址和替代文字。
+          禁止: 修改 class、style、data-as-element 之外的属性。
+        -->
+        <img data-as-element="as-figure-image" src="https://dummyimage.com/1200x620/0b102e/ffffff&text=Blue Template Image" alt="示例图">
+
+        <!-- @as-element as-figure-caption
+          允许:
+            text
+          适用: 图注文本。
+          禁止: 正文段落；标题；列表。
+        -->
+        <figcaption data-as-element="as-figure-caption">图：示例图片说明</figcaption>
+      </figure>
+
+    </div>
+
+    <aside class="side-panel">
+      <div class="side-head">
+        <h3 class="side-title">目录</h3>
+        <button type="button" class="toc-top-btn" id="toc-top-btn" aria-label="返回顶部">顶部</button>
+      </div>
+      <nav id="toc">
+        <p class="toc-empty">加载中…</p>
+      </nav>
+    </aside>
+  </main>
+
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <span>©Blue Document Template</span>
+    <span>Confidential · For internal use only</span>
+  </div>
+</footer>
+
+<script>
+  // 「顶部」按钮：平滑回到页面顶部
+  (function () {
+    var btn = document.getElementById('toc-top-btn');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    });
+  })();
+
+  // 「打印」与「PDF」按钮：都走浏览器原生打印对话框，
+  // 用户在目标里选「另存为 PDF」即得到 PDF 文件
+  (function () {
+    var printBtn = document.getElementById('print-btn');
+    var pdfBtn   = document.getElementById('export-pdf-btn');
+    if (printBtn) printBtn.addEventListener('click', function () { window.print(); });
+    if (pdfBtn)   pdfBtn.addEventListener('click',   function () { window.print(); });
+  })();
+
+  // 自动生成目录：扫描 as-document 内的 h2，构建可点击 + 滚动高亮的 TOC
+  (function () {
+    var doc = document.querySelector('[data-as-element="as-document"]');
+    var tocEl = document.getElementById('toc');
+    if (!doc || !tocEl) return;
+
+    var headings = doc.querySelectorAll('h2');
+    if (!headings.length) {
+      tocEl.innerHTML = '<p class="toc-empty">暂无目录</p>';
+      return;
+    }
+
+    var ul = document.createElement('ul');
+    ul.className = 'toc-list';
+
+    var anchorMap = [];
+    headings.forEach(function (h, i) {
+      if (!h.id) h.id = 'h-' + i;
+      var li = document.createElement('li');
+      li.className = 'toc-' + h.tagName.toLowerCase();
+      var a = document.createElement('a');
+      a.href = '#' + h.id;
+      a.textContent = h.textContent.trim();
+      a.title = a.textContent;
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        var top = h.getBoundingClientRect().top + window.scrollY - 74;
+        window.scrollTo({ top: top, behavior: 'smooth' });
+        history.replaceState(null, '', '#' + h.id);
+      });
+      li.appendChild(a);
+      ul.appendChild(li);
+      anchorMap.push({ h: h, a: a });
+    });
+
+    tocEl.innerHTML = '';
+    tocEl.appendChild(ul);
+
+    // 滚动高亮：用 IntersectionObserver 跟踪可见标题
+    var visible = new Set();
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) visible.add(en.target);
+        else visible.delete(en.target);
+      });
+      var current = null;
+      anchorMap.forEach(function (item) {
+        if (visible.has(item.h)) {
+          if (!current) current = item;
+        }
+      });
+      if (!current) {
+        // 回退：找最近一个已滚过头部的标题
+        for (var i = anchorMap.length - 1; i >= 0; i--) {
+          if (anchorMap[i].h.getBoundingClientRect().top < 100) {
+            current = anchorMap[i];
+            break;
+          }
+        }
+      }
+      anchorMap.forEach(function (item) {
+        item.a.classList.toggle('is-active', item === current);
+      });
+    }, { rootMargin: '-70px 0px -70% 0px', threshold: 0 });
+
+    headings.forEach(function (h) { io.observe(h); });
+  })();
+</script>
+</body>
+</html>
